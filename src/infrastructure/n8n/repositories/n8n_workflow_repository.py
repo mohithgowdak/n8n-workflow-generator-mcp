@@ -4,6 +4,12 @@ from typing import Dict, Any, List, Optional
 from .base_repository import BaseN8nRepository
 from ..util.n8n_validator import validate_workflow_structure, clean_workflow_for_create, clean_workflow_for_update
 from ...logger.logger import Logger
+# Use absolute import to avoid relative import resolution issues in test environment
+try:
+    from src.domain.errors import ValidationError, ResourceNotFoundError
+except ImportError:
+    # Fallback for when running as package
+    from ...domain.errors import ValidationError, ResourceNotFoundError
 
 
 class N8nWorkflowRepository(BaseN8nRepository):
@@ -14,7 +20,6 @@ class N8nWorkflowRepository(BaseN8nRepository):
         # Validate structure
         errors = validate_workflow_structure(workflow)
         if errors:
-            from ...domain.errors import ValidationError
             raise ValidationError(f"Workflow validation failed: {'; '.join(errors)}")
         
         # Clean workflow
@@ -33,7 +38,6 @@ class N8nWorkflowRepository(BaseN8nRepository):
             return await self.api_client.get_workflow(workflow_id)
         except Exception as e:
             if '404' in str(e) or 'not found' in str(e).lower():
-                from ...domain.errors import ResourceNotFoundError
                 raise ResourceNotFoundError(f"Workflow {workflow_id} not found")
             self._logger.error(f"Failed to get workflow: {e}")
             raise
@@ -43,7 +47,6 @@ class N8nWorkflowRepository(BaseN8nRepository):
         # Validate structure
         errors = validate_workflow_structure(workflow)
         if errors:
-            from ...domain.errors import ValidationError
             raise ValidationError(f"Workflow validation failed: {'; '.join(errors)}")
         
         # Clean workflow

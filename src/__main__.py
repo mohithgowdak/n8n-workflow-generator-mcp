@@ -35,6 +35,11 @@ from .infrastructure.n8n.repositories.n8n_workflow_repository import N8nWorkflow
 from .services.workflow_generation_service import WorkflowGenerationService
 from .infrastructure.tools.tool_registry import ToolRegistry
 from .infrastructure.tools.workflow_tools import register_workflow_tools
+from .infrastructure.tools.node_tools import register_node_tools
+from .infrastructure.tools.validation_tools import register_validation_tools
+from .infrastructure.tools.n8n_api_tools import register_n8n_api_tools
+from .infrastructure.tools.documentation_tools import register_documentation_tools
+from .infrastructure.database.node_repository import NodeRepository
 from .infrastructure.mcp import MCPProtocolUtils, MCPErrorHandler
 
 
@@ -54,7 +59,34 @@ class N8nWorkflowGeneratorServer:
         # Initialize n8n API client if configured
         self.api_client = None
         self.service = None
+        self.node_repository = None
         self.tool_registry = ToolRegistry.get_instance()
+        
+        # Initialize node repository if database path is available
+        if config.n8n_node_db_path:
+            try:
+                from pathlib import Path
+                db_path = Path(config.n8n_node_db_path)
+                if db_path.exists():
+                    self.node_repository = NodeRepository(str(db_path))
+                    self.logger.info(f"Node database loaded: {config.n8n_node_db_path}")
+                    register_node_tools(self.node_repository, self.tool_registry)
+                    register_validation_tools(self.node_repository, self.tool_registry)
+                else:
+                    self.logger.warning(f"Node database not found: {config.n8n_node_db_path}. Node discovery tools disabled.")
+                    register_node_tools(None, self.tool_registry)
+                    register_validation_tools(None, self.tool_registry)
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize node repository: {e}. Node discovery tools disabled.")
+                register_node_tools(None, self.tool_registry)
+                register_validation_tools(None, self.tool_registry)
+        else:
+            self.logger.info("Node database not configured. Node discovery tools disabled.")
+            register_node_tools(None, self.tool_registry)
+            register_validation_tools(None, self.tool_registry)
+        
+        # Register documentation tools (always available)
+        register_documentation_tools(self.tool_registry)
         
         if config.n8n_api_url and config.n8n_api_key:
             try:
@@ -65,10 +97,12 @@ class N8nWorkflowGeneratorServer:
                 workflow_repository = N8nWorkflowRepository(self.api_client)
                 self.service = WorkflowGenerationService(workflow_repository)
                 
-                # Register tools
+                # Register workflow and n8n API tools
                 register_workflow_tools(self.service, self.tool_registry)
+                register_n8n_api_tools(workflow_repository, self.tool_registry)
             except Exception as e:
                 self.logger.warning(f"Failed to initialize n8n client: {e}. Deployment features disabled.")
+                register_workflow_tools(None, self.tool_registry)
         else:
             self.logger.info("n8n API not configured. Only workflow generation and validation available.")
             # Register tools with None service (validation-only mode)
@@ -150,6 +184,8 @@ class N8nWorkflowGeneratorServer:
             # Cleanup
             if self.api_client:
                 await self.api_client.close()
+            if self.node_repository:
+                self.node_repository.close()
 
 
 def main():
