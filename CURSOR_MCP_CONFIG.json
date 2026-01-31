@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "n8n-workflow-generator": {
+      "command": "D:\\n8n_mcp_server_self_hosted\\n8n-workflow-generator-mcp\\venv\\Scripts\\python.exe",
+      "args": [
+        "D:\\n8n_mcp_server_self_hosted\\n8n-workflow-generator-mcp\\run_mcp.py"
+      ],
+      "cwd": "D:\\n8n_mcp_server_self_hosted\\n8n-workflow-generator-mcp",
+      "env": {
+        "PYTHONPATH": "D:\\n8n_mcp_server_self_hosted\\n8n-workflow-generator-mcp",
+        "N8N_API_URL": "http://localhost:5678",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNzI2YjczZS0yNjA4LTQ5YzItYTdjNS01ZDNjNDU1M2UyYTQiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY5ODY3NDgyfQ.C1WqCjKakUv2UUvBEnyHlB7dDUReL4seBynD7Hi8-GM"
+      }
+    }
+  }
+}
+

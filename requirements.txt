@@ -1,0 +1,20 @@
+# MCP SDK
+mcp>=0.1.0
+
+# Validation and data models
+pydantic>=2.0.0
+
+# Async HTTP client
+httpx>=0.25.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Type checking (dev)
+mypy>=1.0.0
+
+# Testing (dev)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+
